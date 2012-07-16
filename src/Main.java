@@ -1,12 +1,14 @@
 public class Main {
 	public static void main(String[] args) {
-		Poker poker = new Poker();
-		poker.setCard(14, 0);
-		poker.setCard(1, 1);
-		poker.setCard(4, 2);
-		poker.setCard(50, 3);
-		poker.setCard(9, 4);
-		poker.doPorker();
-		poker.toStringPorker();
+		Judgement judgement = new Judgement();
+		judgement.setCard(51, 0);
+		judgement.setCard(1, 1);
+		judgement.setCard(2, 2);
+		judgement.setCard(3, 3);
+		judgement.setCard(4, 4);
+		judgement.setCard(20, 5);
+		judgement.setCard(0, 6);
+		judgement.judge();
+		judgement.toStringPorker();
 	}
 }

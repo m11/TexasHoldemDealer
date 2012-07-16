@@ -1,11 +1,19 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 
-public class Poker {
+public class Judgement {
+
 	private ArrayList<Card> mCards = new ArrayList<Card>();
+	private ArrayList<Card> mBestCards = new ArrayList<Card>();
+	private ArrayList<Card> mAllCards = new ArrayList<Card>();
+	private Field mField = new Field();
+	private Poket mPoket = new Poket();
 	private int[] mPointCards = new int[5];
-	private int point = 0;
-	private String hand = "";
+	private int mPoint = 0;
+	private int mBestPoint = 0;
+	private String mHand = "";
+	private String mBestHand = "";
 	private int mSameNumber = 0;
 
 	private static String STRING_ROYAL_FLUSH = "Royal Flush";
@@ -30,31 +38,61 @@ public class Poker {
 	private static int RANK_ONE_PAIR = 1000000;
 	private static int RANK_HIGH_CARD = 0;
 
-	public Poker() {
-		for (int i = 0; i < 5; i++) {
-			mCards.add(new Card());
-		}
+	public Judgement() {
+		mAllCards.addAll(mPoket.getPoketCard());
+		mAllCards.addAll(mField.getFieldCard());
 	}
 
 	public void setCard(int card, int index) {
-		mCards.get(index).setCard(card);
+		mAllCards.get(index).setCard(card);
 	}
 
-	public void doPorker() {
-		if (checkDuplicate()) {
-			System.out.println("Fatal Combination");
-			return;
-		}
-		Collections.sort(mCards, new CardComparator());
+	void judge() {
+		mBestPoint = 0;
+		mBestHand = "";
 
-		checkHand();
+		CombinationCards combination = new CombinationCards(mAllCards, 5);
+		Iterator<ArrayList<Card>> i = combination.getIterator();
+		while (i.hasNext()) {
+			mCards = i.next();
+
+			if (checkWildCard()) {
+				// System.out.println("Fatal: contain wild card");
+				continue;
+			}
+			if (checkDuplicate()) {
+				// System.out.println("Fatal: fatal Combination");
+				continue;
+			}
+
+			Collections.sort(mCards, new CardComparator());
+
+			checkHand();
+			System.out
+					.println(String.format("%s:%d [%s %s %s %s %s]", mHand,
+							mPoint, mCards.get(0).toStringCard(), mCards.get(1)
+									.toStringCard(), mCards.get(2)
+									.toStringCard(), mCards.get(3)
+									.toStringCard(), mCards.get(4)
+									.toStringCard()));
+			if (mPoint > mBestPoint) {
+				mBestPoint = mPoint;
+				mBestHand = mHand;
+				mBestCards = mCards;
+			}
+		}
+
 	}
 
 	public void toStringPorker() {
-		System.out.println(String.format("%s:%d [%s %s %s %s %s]", hand, point,
-				mCards.get(0).toStringCard(), mCards.get(1).toStringCard(),
-				mCards.get(2).toStringCard(), mCards.get(3).toStringCard(),
-				mCards.get(4).toStringCard()));
+		System.out.println("");
+		System.out.println("----Best Card----");
+		System.out.println("");
+		System.out.println(String.format("%s:%d [%s %s %s %s %s]", mBestHand,
+				mBestPoint, mBestCards.get(0).toStringCard(), mBestCards.get(1)
+						.toStringCard(), mBestCards.get(2).toStringCard(),
+				mBestCards.get(3).toStringCard(), mBestCards.get(4)
+						.toStringCard()));
 	}
 
 	// private method
@@ -66,13 +104,20 @@ public class Poker {
 		return false;
 	}
 
+	private boolean checkWildCard() {
+		for (int i = 0; i < 5; i++)
+			if (mCards.get(i).getCard() == Card.WILD_CARD)
+				return true;
+		return false;
+	}
+
 	void resetPointCards() {
 		for (int i = 0; i < 5; i++)
 			mPointCards[i] = 0;
 	}
 
-	void setPointCards(int index, int point) {
-		mPointCards[index] = point - 1;
+	void setPointCards(int index, int mPoint) {
+		mPointCards[index] = mPoint - 2;
 		if (mPointCards[index] < 0)
 			mPointCards[index] += 13;
 	}
@@ -127,11 +172,15 @@ public class Poker {
 		if (getSameNumberNum() == 2) {
 			int num = 0;
 			resetPointCards();
-			setPointCards(3, mSameNumber);
+			setPointCards(4, mSameNumber);
 
 			for (int i = 0; i < 5 && num < 3; i++) {
 				if (mCards.get(i).getNumber() != mSameNumber) {
-					setPointCards(num, mCards.get(i).getNumber());
+					if (mCards.get(i).getNumber() == 1) {
+						setPointCards(3, 1);
+					} else {
+						setPointCards(num, mCards.get(i).getNumber());
+					}
 					num++;
 				}
 			}
@@ -153,7 +202,7 @@ public class Poker {
 		for (int i = 0; i < 5; i++) {
 			for (int j = i + 1; j < 5; j++) {
 				if (mCards.get(i).getNumber() == mCards.get(j).getNumber()) {
-					if (smallPair == 0) {
+					if (smallPair == 0 && mCards.get(i).getNumber() != 1) {
 						smallPair = mCards.get(i).getNumber();
 					} else {
 						bigPair = mCards.get(i).getNumber();
@@ -181,11 +230,15 @@ public class Poker {
 		if (getSameNumberNum() == 3) {
 			int num = 0;
 			resetPointCards();
-			setPointCards(2, mSameNumber);
+			setPointCards(3, mSameNumber);
 
 			for (int i = 0; i < 5 && num < 2; i++) {
 				if (mCards.get(i).getNumber() != mSameNumber) {
-					setPointCards(num, mCards.get(i).getNumber());
+					if (mCards.get(i).getNumber() == 1) {
+						setPointCards(2, 1);
+					} else {
+						setPointCards(num, mCards.get(i).getNumber());
+					}
 					num++;
 				}
 			}
@@ -201,12 +254,12 @@ public class Poker {
 		resetPointCards();
 
 		// 「Royal Flush」でも条件を満たす
-		if (number == 0)
-			if (mCards.get(1).getNumber() == 9
-					&& mCards.get(2).getNumber() == 10
-					&& mCards.get(3).getNumber() == 11
-					&& mCards.get(4).getNumber() == 12) {
-				setPointCards(0, 0);
+		if (number == 1)
+			if (mCards.get(1).getNumber() == 10
+					&& mCards.get(2).getNumber() == 11
+					&& mCards.get(3).getNumber() == 12
+					&& mCards.get(4).getNumber() == 13) {
+				setPointCards(0, 1);
 				return true;
 			}
 
@@ -227,8 +280,8 @@ public class Poker {
 				return false;
 
 		resetPointCards();
-		if (mCards.get(0).getNumber() == 0) {
-			setPointCards(4, 0);
+		if (mCards.get(0).getNumber() == 1) {
+			setPointCards(4, 1);
 			for (int i = 0; i < 4; i++)
 				setPointCards(i, mCards.get(i + 1).getNumber());
 		} else {
@@ -263,11 +316,9 @@ public class Poker {
 		if (getSameNumberNum() == 4) {
 			resetPointCards();
 			setPointCards(1, mSameNumber);
-
 			for (int i = 0; i < 5; i++) {
 				if (mCards.get(i).getNumber() != mSameNumber) {
 					setPointCards(0, mCards.get(i).getNumber());
-					break;
 				}
 			}
 			return true;
@@ -293,7 +344,7 @@ public class Poker {
 		if (!checkStraightFlush())
 			return false;
 
-		if (mCards.get(0).getNumber() != 0 || mCards.get(1).getNumber() != 9)
+		if (mCards.get(0).getNumber() != 1 || mCards.get(1).getNumber() != 10)
 			return false;
 
 		// 優劣なし
@@ -303,39 +354,39 @@ public class Poker {
 
 	private void checkHand() {
 
-		hand = "";
-		point = 0;
+		mHand = "";
+		mPoint = 0;
 
 		if (checkRoyalFlush()) {
-			hand = STRING_ROYAL_FLUSH;
-			point = RANK_ROYAL_FLUSH;
+			mHand = STRING_ROYAL_FLUSH;
+			mPoint = RANK_ROYAL_FLUSH;
 		} else if (checkStraightFlush()) {
-			hand = STRING_STRAIGHT_FLUSH;
-			point = RANK_STRAIGHT_FLUSH;
+			mHand = STRING_STRAIGHT_FLUSH;
+			mPoint = RANK_STRAIGHT_FLUSH;
 		} else if (checkFourOfAKind()) {
-			hand = STRING_FOUE_OF_A_KIND;
-			point += RANK_FOUE_OF_A_KIND;
+			mHand = STRING_FOUE_OF_A_KIND;
+			mPoint += RANK_FOUE_OF_A_KIND;
 		} else if (ceckFullHouse()) {
-			hand = STRING_FULL_HOUSE;
-			point = RANK_FULL_HOUSE;
+			mHand = STRING_FULL_HOUSE;
+			mPoint = RANK_FULL_HOUSE;
 		} else if (checkFlush()) {
-			hand = STRING_FLUSH;
-			point = RANK_FLUSH;
+			mHand = STRING_FLUSH;
+			mPoint = RANK_FLUSH;
 		} else if (checkStraight()) {
-			hand = STRING_STRAIGHT;
-			point = RANK_STRAIGHT;
+			mHand = STRING_STRAIGHT;
+			mPoint = RANK_STRAIGHT;
 		} else if (checkThreeOfAKind()) {
-			hand = STRING_THREE_OF_A_KIND;
-			point = RANK_THREE_OF_A_KIND;
+			mHand = STRING_THREE_OF_A_KIND;
+			mPoint = RANK_THREE_OF_A_KIND;
 		} else if (checkTwoPair()) {
-			hand = STRING_TWO_PAIR;
-			point = RANK_TWO_PAIR;
+			mHand = STRING_TWO_PAIR;
+			mPoint = RANK_TWO_PAIR;
 		} else if (checkOnePair()) {
-			hand = STRING_ONE_PAIR;
-			point = RANK_ONE_PAIR;
+			mHand = STRING_ONE_PAIR;
+			mPoint = RANK_ONE_PAIR;
 		} else {
 			resetPointCards();
-			if (mCards.get(0).getNumber() == 0) {
+			if (mCards.get(0).getNumber() == 1) {
 				setPointCards(4, 0);
 				for (int i = 0; i < 4; i++)
 					setPointCards(i, mCards.get(i + 1).getNumber());
@@ -343,11 +394,11 @@ public class Poker {
 				for (int i = 0; i < 5; i++)
 					setPointCards(i, mCards.get(i).getNumber());
 			}
-			hand = STRING_HIGH_CARD;
-			point = RANK_HIGH_CARD;
+			mHand = STRING_HIGH_CARD;
+			mPoint = RANK_HIGH_CARD;
 		}
 
-		point += getPointCards();
+		mPoint += getPointCards();
 		return;
 	}
 }

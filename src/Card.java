@@ -1,9 +1,13 @@
+import java.util.ArrayList;
+import java.util.Iterator;
+
 public class Card {
-	private int mMark = 99;
-	private int mNumber = 99;
+	public static int WILD_CARD = 52;
+	private int mMark = 0;
+	private int mNumber = 14;
 
 	public int getCard() {
-		return mMark + mNumber * 4;
+		return mMark + (mNumber - 1) * 4;
 	}
 
 	public void setCard(int mark, int number) {
@@ -13,7 +17,7 @@ public class Card {
 
 	public void setCard(int card) {
 		this.mMark = card % 4;
-		this.mNumber = card / 4;
+		this.mNumber = card / 4 + 1;
 	}
 
 	public int getMark() {
@@ -34,18 +38,18 @@ public class Card {
 
 	public String toStringNumber() {
 		switch (mNumber) {
-		case 0:
+		case 1:
 			return "A";
-		case 9:
-			return "T";
 		case 10:
-			return "J";
+			return "T";
 		case 11:
-			return "Q";
+			return "J";
 		case 12:
+			return "Q";
+		case 13:
 			return "K";
 		}
-		return Integer.toString(mNumber + 1);
+		return Integer.toString(mNumber);
 	}
 
 	public String toStringMark() {
@@ -74,5 +78,62 @@ class CardComparator implements java.util.Comparator {
 		// 0 (x = y)
 		// - (x < y)
 		return ((Card) o1).getCard() - ((Card) o2).getCard();
+	}
+}
+
+class CombinationCards implements Iterator {
+
+	private ArrayList<ArrayList<Card>> mCombinations;
+	private ArrayList<Card> mCards;
+	private int[] mIndex;
+	private boolean[] mVisited;
+	private int r;
+	private Iterator<ArrayList<Card>> mIterator;
+
+	public CombinationCards(ArrayList<Card> cards, int r) {
+		this.mCards = cards;
+		this.mIndex = new int[r];
+		this.mVisited = new boolean[cards.size()];
+		this.mCombinations = new ArrayList<ArrayList<Card>>();
+		this.r = r;
+		this.compute(0);
+		this.mIterator = this.mCombinations.iterator();
+	}
+
+	private void compute(int n) {
+		if (n == r) {
+			ArrayList<Card> combination = new ArrayList<Card>();
+			for (int i = 0; i < this.mIndex.length; i++) {
+				combination.add(mCards.get(mIndex[i]));
+			}
+			mCombinations.add(combination);
+		} else {
+			for (int i = 0; i < this.mCards.size(); i++) {
+				if (n == 0 || !this.mVisited[i] && mIndex[n - 1] < i) {
+					this.mVisited[i] = true;
+					this.mIndex[n] = i;
+					this.compute(n + 1);
+					this.mVisited[i] = false;
+				}
+			}
+		}
+	}
+
+	@Override
+	public ArrayList<Card> next() {
+		return this.mIterator.next();
+	}
+
+	@Override
+	public boolean hasNext() {
+		return this.mIterator.hasNext();
+	}
+
+	@Override
+	public void remove() {
+	}
+
+	public Iterator<ArrayList<Card>> getIterator() {
+		return this.mIterator;
 	}
 }

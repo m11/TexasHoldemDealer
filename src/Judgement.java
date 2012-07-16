@@ -82,9 +82,6 @@ public class Judgement {
 			}
 		}
 
-	}
-
-	public void toStringPorker() {
 		System.out.println("");
 		System.out.println("----Best Card----");
 		System.out.println("");

@@ -87,24 +87,34 @@ class CombinationCards implements Iterator {
 	private ArrayList<Card> mCards;
 	private int[] mIndex;
 	private boolean[] mVisited;
-	private int r;
+	private int mChose;
 	private Iterator<ArrayList<Card>> mIterator;
 
 	public CombinationCards(ArrayList<Card> cards, int r) {
 		this.mCards = cards;
-		this.mIndex = new int[r];
+		this.mChose = cards.size() - r;
+		this.mIndex = new int[mChose];
 		this.mVisited = new boolean[cards.size()];
 		this.mCombinations = new ArrayList<ArrayList<Card>>();
-		this.r = r;
 		this.compute(0);
 		this.mIterator = this.mCombinations.iterator();
 	}
 
 	private void compute(int n) {
-		if (n == r) {
+		if (n == mChose) {
 			ArrayList<Card> combination = new ArrayList<Card>();
-			for (int i = 0; i < this.mIndex.length; i++) {
-				combination.add(mCards.get(mIndex[i]));
+			for (int i = 0; i < this.mCards.size(); i++) {
+				boolean skip = false;
+				for (int j = 0; j < this.mIndex.length; j++) {
+					if (i == this.mIndex[j]) {
+						skip = true;
+						break;
+					}
+				}
+				if (skip) {
+					continue;
+				}
+				combination.add(mCards.get(i));
 			}
 			mCombinations.add(combination);
 		} else {

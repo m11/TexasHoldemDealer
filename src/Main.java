@@ -9,6 +9,5 @@ public class Main {
 		judgement.setCard(20, 5);
 		judgement.setCard(0, 6);
 		judgement.judge();
-		judgement.toStringPorker();
 	}
 }

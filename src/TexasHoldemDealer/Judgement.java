@@ -49,7 +49,7 @@ public class Judgement {
 		mAllCards.get(index).setCard(card);
 	}
 
-	void judge() {
+	public void judge() {
 		mBestPoint = 0;
 		mBestHand = "";
 
